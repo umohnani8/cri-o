@@ -1156,8 +1156,3 @@ func (r *RuntimeHandler) ValidateRuntimeAllowedAnnotations() error {
 func (c *NetworkConfig) CNIPlugin() ocicni.CNIPlugin {
 	return c.cniPlugin
 }
-
-// SetSingleConfigPath set single config path for config
-func (c *Config) SetSingleConfigPath(singleConfigPath string) {
-	c.singleConfigPath = singleConfigPath
-}
