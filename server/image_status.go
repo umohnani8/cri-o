@@ -3,6 +3,8 @@ package server
 import (
 	"context"
 	"fmt"
+	"os"
+	"runtime/pprof"
 	"strconv"
 	"strings"
 
@@ -17,6 +19,28 @@ import (
 
 // ImageStatus returns the status of the image.
 func (s *Server) ImageStatus(ctx context.Context, req *types.ImageStatusRequest) (*types.ImageStatusResponse, error) {
+	c1 := make(chan *types.ImageStatusResponse)
+	c2 := make(chan error)
+	go func() {
+		resp, err := s.imageStatus(ctx, req)
+		c1 <- resp
+		c2 <- err
+	}()
+
+	file, err := os.Create("/home/umohnani/go/src/github.com/cri-o/cri-o/pprof.txt")
+	if err != nil {
+		return nil, errors.Wrapf(err, "error creating file")
+	}
+
+	prof := pprof.Lookup("goroutine")
+	prof.WriteTo(file, 2)
+	fmt.Println("---count---:", prof.Count())
+	fmt.Println("---name----:", prof.Name())
+	return <-c1, <-c2
+}
+
+// ImageStatus returns the status of the image.
+func (s *Server) imageStatus(ctx context.Context, req *types.ImageStatusRequest) (*types.ImageStatusResponse, error) {
 	var resp *types.ImageStatusResponse
 	image := ""
 	img := req.Image
